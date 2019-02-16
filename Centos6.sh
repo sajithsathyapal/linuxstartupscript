@@ -56,7 +56,3 @@ COMMIT
 EOF
 # Restart iptables
 /etc/init.d/iptables restart
-
-
-
-168.61.74.246:3128:sas:1qazxsw23edc
