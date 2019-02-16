@@ -1,13 +1,13 @@
 #!/bin/sh
 PROXY_USER=sas
-PROXY_PASS=1qazxsw23edc
+PROXY_PASS=sas
 PROXY_PORT=3128
 CURDATE=`date +%m%d%H%M%Y`
 HOSTNA="host-$CURDATE" 
 # Clear the repository index caches
-yum clean all
+#yum clean all
 # Update the operating system
-yum update -y
+#yum update -y
 # Install httpd-tools to get htpasswd
 yum install httpd-tools -y
 # Install squid
