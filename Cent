@@ -55,3 +55,4 @@ cat << EOF > /etc/sysconfig/iptables
 COMMIT
 EOF
 # Restart iptables
+/etc/init.d/iptables restart
