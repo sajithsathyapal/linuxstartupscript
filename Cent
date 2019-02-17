@@ -1,6 +1,6 @@
-
+#!/bin/sh
 CURDATE=`date +%m%d%H%M%Y`
-HOSTNA="host-$CURDATE"#!/bin/sh
+HOSTNA="host-$CURDATE"
 PROXY_USER=sas
 PROXY_PASS=sas
 PROXY_PORT=3128
