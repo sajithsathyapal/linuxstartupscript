@@ -1,0 +1,85 @@
+#!/bin/sh
+CURDATE=`date +%m%d%H%M%Y`
+HOSTNA="host-$CURDATE"
+PROXY_USER=sas
+PROXY_PASS=sas
+PROXY_PORT1=3121
+PROXY_PORT2=3122
+PROXY_PORT3=3123
+PROXY_PORT4=3124
+PROXY_PORT5=3125
+PROXY_PORT6=3126
+PROXY_PORT7=3127
+PROXY_PORT8=3128
+PROXY_PORT9=3129
+PROXY_PORT10=3130
+# Clear the repository index caches
+#yum clean all
+# Update the operating system
+#yum update -y
+# Install httpd-tools to get htpasswd
+yum install httpd-tools -y
+# Install squid
+yum install squid -y
+# Create the htpasswd file
+htpasswd -c -b /etc/squid/passwords $PROXY_USER $PROXY_PASS
+# Backup the original squid config
+cp /etc/squid/squid.conf /etc/squid/squid.conf.bak
+# Set up the squid config
+cat << EOF > /etc/squid/squid.conf
+visible_hostname $HOSTNA
+auth_param basic program /usr/lib64/squid/ncsa_auth /etc/squid/passwords
+auth_param basic realm proxy
+acl authenticated proxy_auth REQUIRED
+http_access allow authenticated
+forwarded_for delete
+http_port 0.0.0.0:$PROXY_PORT1
+http_port 0.0.0.0:$PROXY_PORT2
+http_port 0.0.0.0:$PROXY_PORT3
+http_port 0.0.0.0:$PROXY_PORT4
+http_port 0.0.0.0:$PROXY_PORT5
+http_port 0.0.0.0:$PROXY_PORT6
+http_port 0.0.0.0:$PROXY_PORT7
+http_port 0.0.0.0:$PROXY_PORT8
+http_port 0.0.0.0:$PROXY_PORT9
+http_port 0.0.0.0:$PROXY_PORT10
+EOF
+
+# Set squid to start on boot
+chkconfig squid on
+# Start squid
+/etc/init.d/squid start
+# Set up the iptables config
+cat << EOF > /etc/sysconfig/iptables
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+#######################################################
+# BEGIN CUSTOM RULES
+#######################################################
+# Allow SSH from anywhere
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 22 -j ACCEPT
+# Allow squid access from anywhere
+-A INPUT -m state --state NEW -m tcp -p tcp --dport $PROXY_PORT1 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport $PROXY_PORT2 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport $PROXY_PORT3 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport $PROXY_PORT4 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport $PROXY_PORT5 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport $PROXY_PORT6 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport $PROXY_PORT7 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport $PROXY_PORT8 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport $PROXY_PORT9 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport $PROXY_PORT10 -j ACCEPT
+#######################################################
+# END CUSTOM RULES
+#######################################################
+-A INPUT -j REJECT --reject-with icmp-host-prohibited
+-A FORWARD -j REJECT --reject-with icmp-host-prohibited
+COMMIT
+EOF
+# Restart iptables
+/etc/init.d/iptables restart
